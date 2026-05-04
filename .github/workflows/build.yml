@@ -3,7 +3,7 @@ name: Build AUR Packages
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Daily at midnight
+    - cron: '0 0 * * *'
 
 jobs:
   build:
@@ -35,30 +35,19 @@ jobs:
           PACKAGES="${{ steps.packages.outputs.packages }}"
           for pkg in $PACKAGES; do
             echo "Building $pkg..."
-            
-            # Clone from AUR to /tmp
             cd /tmp
             git clone https://aur.archlinux.org/$pkg.git
             cd /tmp/$pkg
-            
-            # Build (--as Root allows running as root in container)
             makepkg -sir --noconfirm --noprogress --asroot
-            
-            # Debug: show what was built
             ls -la *.pkg.tar.zst 2>/dev/null || echo "No package file found!"
-            
-            # Move to output
             mkdir -p $GITHUB_WORKSPACE/packages
             cp *.pkg.tar.zst $GITHUB_WORKSPACE/packages/ 2>/dev/null || true
           done
-          
-          # Debug: show what's in output dir
           ls -la $GITHUB_WORKSPACE/packages/
 
       - name: Create repo index
         run: |
           cd $GITHUB_WORKSPACE/packages
-          # Create package database
           repo-add solara-pkgs.db.tar.gz *.pkg.tar.zst || true
 
       - name: Upload artifacts
