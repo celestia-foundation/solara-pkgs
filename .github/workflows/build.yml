@@ -8,10 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: archlinux/archiso:latest
+    container: archlinux:latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Initialize pacman
+        run: |
+          pacman-key --init
+          pacman-key --populate
+          pacman -Sy --noconfirm archlinux-keyring
 
       - name: Install build tools
         run: |
@@ -20,8 +26,9 @@ jobs:
       - name: Read packages to build
         id: packages
         run: |
-          echo "packages=$(cat packages.yaml | grep -E '^\s+-\s+' | sed 's/^\s*-\s*//' | tr '\n' ' ')" >> $GITHUB_OUTPUT
-          echo "Packages to build: ${{ steps.packages.outputs.packages }}"
+          PACKAGES=$(cat packages.yaml | grep -E '^\s+-\s+' | sed 's/^\s*-\s*//' | tr '\n' ' ')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+          echo "Packages to build: $PACKAGES"
 
       - name: Build each package
         run: |
@@ -29,10 +36,10 @@ jobs:
           for pkg in $PACKAGES; do
             echo "Building $pkg..."
             
-            # Clone from AUR
+            # Clone from AUR to /tmp
             cd /tmp
             git clone https://aur.archlinux.org/$pkg.git
-            cd $pkg
+            cd /tmp/$pkg
             
             # Build
             makepkg -s --noconfirm --noprogress
