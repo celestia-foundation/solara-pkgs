@@ -17,6 +17,10 @@ jobs:
 
       - name: Build yay
         run: |
+          # Install go (yay dependency) as root
+          pacman -S --noconfirm go
+
+          # Create builder user and build
           useradd -m builder
           cd /tmp
           git clone https://aur.archlinux.org/yay.git
