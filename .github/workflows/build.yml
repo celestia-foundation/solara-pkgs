@@ -41,8 +41,8 @@ jobs:
             git clone https://aur.archlinux.org/$pkg.git
             cd /tmp/$pkg
             
-            # Build
-            makepkg -s --noconfirm --noprogress
+            # Build (--as Root allows running as root in container)
+            makepkg -sir --noconfirm --noprogress --asroot
             
             # Move to output
             mkdir -p $GITHUB_WORKSPACE/packages
