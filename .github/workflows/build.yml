@@ -3,86 +3,63 @@ name: Build AUR Packages
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Daily at midnight
+    - cron: '0 0 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: archlinux/archiso:latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install build tools
+      - name: Bootstrap Arch Linux
         run: |
-          pacman -Sy --noconfirm git base-devel
+          # Install dependencies
+          sudo apt-get update
+          sudo apt-get install -y wget proot tar xz-utils
 
-      - name: Read packages to build
-        id: packages
-        run: |
-          echo "packages=$(cat packages.yaml | grep -E '^\s+-\s+' | sed 's/^\s*-\s*//' | tr '\n' ' ')" >> $GITHUB_OUTPUT
-          echo "Packages to build: ${{ steps.packages.outputs.packages }}"
+          # Create working directory
+          mkdir -p /home/runner/archroot
+          cd /home/runner/archroot
 
-      - name: Build each package
+          # Download and extract Arch bootstrap
+          wget -q https://mirror.osbeck.com/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.gz
+          tar xzf archlinux-bootstrap-x86_64.tar.gz
+          cd root.x86_64
+
+          # Setup pacman
+          ./bin/arch-chroot . /bin/bash -c "
+            sed -i 's/^SigLevel.*/SigLevel = Never/' /etc/pacman.conf
+            sed -i '/\[core\]/a\
+[core]\
+Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
+            sed -i '/\[extra\]/a\
+[extra]\
+Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
+            sed -i '/\[community\]/a\
+[community]\
+Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
+            pacman -Sy --noconfirm
+            pacman -S --noconfirm git base-devel
+          "
+
+      - name: Build yay
         run: |
-          PACKAGES="${{ steps.packages.outputs.packages }}"
-          for pkg in $PACKAGES; do
-            echo "Building $pkg..."
-            
-            # Clone from AUR
+          cd /home/runner/archroot/root.x86_64
+          
+          ./bin/arch-chroot . /bin/bash -c "
             cd /tmp
-            git clone https://aur.archlinux.org/$pkg.git
-            cd $pkg
-            
-            # Build
-            makepkg -s --noconfirm --noprogress
-            
-            # Move to output
-            mkdir -p $GITHUB_WORKSPACE/packages
-            cp *.pkg.tar.zst $GITHUB_WORKSPACE/packages/ 2>/dev/null || true
-          done
-
-      - name: Create repo index
-        run: |
-          cd $GITHUB_WORKSPACE/packages
-          # Create package database
-          repo-add solara-pkgs.db.tar.gz *.pkg.tar.zst || true
+            git clone https://aur.archlinux.org/yay.git
+            cd yay
+            useradd -m builder
+            chown -R builder:builder /tmp/yay
+            su - builder -c 'cd /tmp/yay && makepkg -s --noconfirm'
+            cp /home/builder/*.pkg.tar.zst /home/runner/workspace/packages/ 2>/dev/null || true
+          "
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: solara-packages
-          path: |
-            packages/*.pkg.tar.zst
-            packages/*.db.tar.gz
-            packages/*.files.tar.gz
-          retention-days: 30
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: solara-packages
-          path: packages
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: packages/*.pkg.tar.zst
-          name: Latest Packages
-          body: |
-            Auto-built AUR packages for Solara Linux.
-            
-            Add to pacman.conf:
-            ```
-            [solara-pkgs]
-            SigLevel = Optional TrustAll
-            Server = ${{ github.server_url }}/${{ github.repository }}/releases/latest/download/$arch
-            ```
-          draft: false
-          prerelease: false
+          path: packages/
+          retention-days: 7
