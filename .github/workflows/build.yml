@@ -2,60 +2,32 @@ name: Build AUR Packages
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: ghcr.io/archlinux/archlinux:latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Bootstrap Arch Linux
+      - name: Install build tools
         run: |
-          # Install dependencies
-          sudo apt-get update
-          sudo apt-get install -y wget proot tar xz-utils
-
-          # Create working directory
-          mkdir -p /home/runner/archroot
-          cd /home/runner/archroot
-
-          # Download and extract Arch bootstrap
-          wget -q https://mirror.osbeck.com/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.gz
-          tar xzf archlinux-bootstrap-x86_64.tar.gz
-          cd root.x86_64
-
-          # Setup pacman
-          ./bin/arch-chroot . /bin/bash -c "
-            sed -i 's/^SigLevel.*/SigLevel = Never/' /etc/pacman.conf
-            sed -i '/\[core\]/a\
-[core]\
-Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
-            sed -i '/\[extra\]/a\
-[extra]\
-Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
-            sed -i '/\[community\]/a\
-[community]\
-Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
-            pacman -Sy --noconfirm
-            pacman -S --noconfirm git base-devel
-          "
+          pacman -Sy --noconfirm git base-devel
 
       - name: Build yay
         run: |
-          cd /home/runner/archroot/root.x86_64
-          
-          ./bin/arch-chroot . /bin/bash -c "
-            cd /tmp
-            git clone https://aur.archlinux.org/yay.git
-            cd yay
-            useradd -m builder
-            chown -R builder:builder /tmp/yay
-            su - builder -c 'cd /tmp/yay && makepkg -s --noconfirm'
-            cp /home/builder/*.pkg.tar.zst /home/runner/workspace/packages/ 2>/dev/null || true
-          "
+          cd /tmp
+          git clone https://aur.archlinux.org/yay.git
+          cd yay
+          makepkg -s --noconfirm --noprogress
+
+      - name: Create package database
+        run: |
+          mkdir -p /github/workspace/packages/x86_64
+          cp /tmp/yay/*.pkg.tar.zst /github/workspace/packages/x86_64/
+          cd /github/workspace/packages
+          repo-add solara-pkgs.db.tar.gz x86_64/*.pkg.tar.zst
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -63,3 +35,32 @@ Include = /etc/pacman.d/mirrorlist' /etc/pacman.conf
           name: solara-packages
           path: packages/
           retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: solara-packages
+          path: packages
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packages/x86_64/*.pkg.tar.zst
+          name: Latest Packages
+          body: |
+            Auto-built AUR packages for Solara Linux.
+
+            Add to `/etc/pacman.conf`:
+            ```
+            [solara-pkgs]
+            SigLevel = Optional TrustAll
+            Server = ${{ github.server_url }}/${{ github.repository }}/releases/download/latest/x86_64
+            ```
+          draft: false
+          prerelease: false
