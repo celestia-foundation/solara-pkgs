@@ -25,3 +25,12 @@
 ## Tokens
 - Use org token (`ghp_...` starting with `mwe0tAta`) for pushing to `ravecorelabs`
 - Personal tokens won't work for org repos
+
+## LESSONS LEARNED (Roast Edition)
+- GitHub URLs ARE case-sensitive! `ravecorelabs` ≠ `RaveCore-Labs`
+- ALWAYS verify the remote URL BEFORE pushing - check the API if unsure
+- DONT assume the token works for both user and org accounts - they have DIFFERENT permissions
+- If the README says `ravecorelabs`, the remote should ALSO say `ravecorelabs`
+- When asked "what repo", actually check instead of guessing
+- Spent hours pushing to WRONG repo while user screamed at me. Classic.
+- Check. The. Remote. URL. Every. Single. Time.
