@@ -1,44 +1,30 @@
-# Solara PKGS 🌍
+# solara-pkgs
 
-Custom package repository for Solara Linux.
+AUR package repository for Solara Linux.
+
+## What's in here
+
+This repo builds and hosts AUR-only packages that aren't in the official Arch repos. If a package exists in `extra` or `core`, it doesn't belong here.
+
+**Note on Pantheon:** Pantheon is NOT on the AUR. The entire `pantheon` group and all its apps (`pantheon-session`, `gala`, `wingpanel`, etc.) are in the official Arch `extra` repo. Install with `pacman -S pantheon`.
+
+## Packages
+
+- `yay` — AUR helper
+- `visual-studio-code-bin` — official Microsoft VS Code binary
 
 ## Usage
 
 Add to `/etc/pacman.conf`:
-```bash
+
+```
 [solara-pkgs]
 SigLevel = Optional TrustAll
-Server = https://raw.githubusercontent.com/RaveCore-Labs/solara-pkgs/main/$arch
+Server = https://github.com/ravecorelabs/solara-pkgs/releases/download/latest
 ```
 
-Then install packages:
-```bash
-sudo pacman -S yay pantheon-desktop
-```
+Then `pacman -Sy` and install packages normally.
 
-## Available Packages
+## License
 
-- `yay` - AUR helper (install this first!)
-- `pantheon-desktop` - Elementary OS desktop environment
-- More coming soon...
-
-## For Maintainers
-
-This repo uses GitHub Actions to automatically build and update packages from AUR.
-
-### Adding a new package
-
-1. Edit `packages.yaml` to add the package name
-2. The workflow will automatically build it on the next run
-
-### Manual build
-
-```bash
-# Build a package locally
-makepkg -s
-
-# Upload to repo
-git add *.pkg.tar.zst
-git commit -m "Add package"
-git push
-```
+GPL-3.0
