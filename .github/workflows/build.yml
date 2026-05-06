@@ -61,14 +61,7 @@ jobs:
       - name: Generate pkglist.json
         run: |
           cd packages/x86_64
-          python3 -c "
-import os, json
-pkgs = []
-for f in sorted(os.listdir('.')):
-    if f.endswith('.pkg.tar.zst'):
-        pkgs.append({'name': f, 'size': os.path.getsize(f)})
-print(json.dumps(pkgs, indent=2))
-" > ../../pkglist.json
+          ls *.pkg.tar.zst | python3 -c "import sys,os,json; pkgs=[{'name':f.strip(),'size':os.path.getsize(f.strip())} for f in sys.stdin]; print(json.dumps(pkgs))" > ../../pkglist.json
           cat ../../pkglist.json
 
       - name: Delete old release
@@ -129,14 +122,7 @@ print(json.dumps(pkgs, indent=2))
         run: |
           cp docs-src/index.html site/index.html
           cd site/x86_64
-          python3 -c "
-import os, json
-pkgs = []
-for f in sorted(os.listdir('.')):
-    if f.endswith('.pkg.tar.zst'):
-        pkgs.append({'name': f, 'size': os.path.getsize(f)})
-print(json.dumps(pkgs, indent=2))
-" > ../pkglist.json
+          ls *.pkg.tar.zst 2>/dev/null | python3 -c "import sys,os,json; pkgs=[{'name':f.strip(),'size':os.path.getsize(f.strip())} for f in sys.stdin if f.strip()]; print(json.dumps(pkgs))" > ../pkglist.json
           cat ../pkglist.json
 
       - name: Setup Pages
