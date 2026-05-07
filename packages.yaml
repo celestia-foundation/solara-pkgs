@@ -3,3 +3,4 @@ packages:
   - visual-studio-code-bin
   - arc-gtk-theme
   - arc-icon-theme
+  - solara-kernel
