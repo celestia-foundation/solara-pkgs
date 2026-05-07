@@ -1,0 +1,96 @@
+name: Auto-Update Solara Kernel
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly check
+  workflow_dispatch:
+
+jobs:
+  check-update:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.check.outputs.NEW_VERSION }}
+      current_version: ${{ steps.check.outputs.CURRENT_VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check kernel versions
+        id: check
+        run: |
+          # Get latest stable kernel version from kernel.org
+          LATEST=$(curl -s https://www.kernel.org/finger_banner | grep -oP 'stable:\s*\K[0-9]+\.[0-9]+')
+          echo "Latest stable: $LATEST"
+          
+          # Get current version from PKGBUILD
+          CURRENT=$(grep -oP 'pkgver=[0-9]+\.[0-9]+' PKGBUILD | cut -d= -f2)
+          echo "Current: $CURRENT"
+          
+          # Check if RC
+          IS_RC=$(curl -s "https://www.kernel.org/finger_banner" | grep -c "rc")
+          if [ "$IS_RC" -gt 0 ]; then
+            echo "Skipping - RC version detected"
+            echo "NEW_VERSION=" >> $GITHUB_OUTPUT
+            echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "NEW_VERSION=$LATEST" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_OUTPUT
+          
+          if [ "$LATEST" != "$CURRENT" ]; then
+            echo "Update available: $LATEST vs $CURRENT"
+          fi
+
+  update-kernel:
+    needs: check-update
+    if: needs.check-update.outputs.new_version != ''
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pacman -Sy --noconfirm git base-devel python
+
+      - name: Setup SSH for AUR
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Clone AUR repo
+        run: |
+          git clone ssh://aur@aur.archlinux.org/solara-kernel.git aur-repo
+
+      - name: Update PKGBUILD
+        run: |
+          cd aur-repo
+          
+          # Update version
+          NEW_VER=${{ needs.check-update.outputs.new_version }}
+          sed -i "s/pkgver=.*/pkgver=$NEW_VER/" PKGBUILD
+          
+          # Update source URLs for new version
+          sed -i "s/v7\.0\.[0-9]/v$NEW_VER/g" PKGBUILD
+          
+          # Generate new checksums
+          updpkgsums
+          
+          # Update .SRCINFO
+          makepkg --printsrcinfo > .SRCINFO
+
+      - name: Commit and push
+        run: |
+          cd aur-repo
+          git add -A
+          git commit -m "Update to Linux ${{ needs.check-update.outputs.new_version }}"
+          git push
+
+      - name: Create release note
+        if: false
+        run: |
+          echo "Solara Kernel updated to Linux ${{ needs.check-update.outputs.new_version }}"
