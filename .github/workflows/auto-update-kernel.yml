@@ -62,13 +62,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
 
-      - name: Clone AUR repo
+      - name: Clone AUR repos
         run: |
-          git clone ssh://aur@aur.archlinux.org/solara-kernel.git aur-repo
+          git clone ssh://aur@aur.archlinux.org/solara-kernel.git aur-kernel
+          git clone ssh://aur@aur.archlinux.org/solara-kernel-headers.git aur-headers
 
-      - name: Update PKGBUILD
+      - name: Update solara-kernel PKGBUILD
         run: |
-          cd aur-repo
+          cd aur-kernel
           
           # Update version
           NEW_VER=${{ needs.check-update.outputs.new_version }}
@@ -83,9 +84,24 @@ jobs:
           # Update .SRCINFO
           makepkg --printsrcinfo > .SRCINFO
 
+      - name: Update solara-kernel-headers PKGBUILD
+        run: |
+          cd aur-headers
+          
+          NEW_VER=${{ needs.check-update.outputs.new_version }}
+          sed -i "s/pkgver=.*/pkgver=$NEW_VER/" PKGBUILD
+          sed -i "s/v7\.0\.[0-9]/v$NEW_VER/g" PKGBUILD
+          updpkgsums
+          makepkg --printsrcinfo > .SRCINFO
+
       - name: Commit and push
         run: |
-          cd aur-repo
+          cd aur-kernel
+          git add -A
+          git commit -m "Update to Linux ${{ needs.check-update.outputs.new_version }}"
+          git push
+          
+          cd ../aur-headers
           git add -A
           git commit -m "Update to Linux ${{ needs.check-update.outputs.new_version }}"
           git push
