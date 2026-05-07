@@ -18,22 +18,13 @@ jobs:
       - name: Check kernel versions
         id: check
         run: |
-          # Get latest stable kernel version from kernel.org
-          LATEST=$(curl -s https://www.kernel.org/finger_banner | grep -oP 'stable:\s*\K[0-9]+\.[0-9]+')
-          echo "Latest stable: $LATEST"
-          
           # Get current version from PKGBUILD
           CURRENT=$(grep -oP 'pkgver=[0-9]+\.[0-9]+' PKGBUILD | cut -d= -f2)
           echo "Current: $CURRENT"
           
-          # Check if RC
-          IS_RC=$(curl -s "https://www.kernel.org/finger_banner" | grep -c "rc")
-          if [ "$IS_RC" -gt 0 ]; then
-            echo "Skipping - RC version detected"
-            echo "NEW_VERSION=" >> $GITHUB_OUTPUT
-            echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+          # Check CachyOS share server for latest version
+          LATEST=$(curl -s https://share.cachyos.org/x86_64_v3/kernel/7.0/ | grep -oP 'linux-cachyos-7\.[0-9]+\.[0-9]+-[0-9]+-x86_64_v3\.pkg\.tar\.zst' | sort -V | tail -1 | grep -oP '7\.[0-9]+\.[0-9]+-[0-9]+' | cut -d- -f1,2 | tr '-' '.')
+          echo "Latest on CachyOS: $LATEST"
           
           echo "NEW_VERSION=$LATEST" >> $GITHUB_OUTPUT
           echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_OUTPUT
@@ -71,17 +62,11 @@ jobs:
         run: |
           cd aur-kernel
           
-          # Update version
           NEW_VER=${{ needs.check-update.outputs.new_version }}
-          sed -i "s/pkgver=.*/pkgver=$NEW_VER/" PKGBUILD
+          MAJOR=$(echo "$NEW_VER" | cut -d. -f1,2)
+          sed -i "s/^pkgver=.*/pkgver=$MAJOR/" PKGBUILD
+          sed -i 's/^pkgrel=.*/pkgrel=1/' PKGBUILD
           
-          # Update source URLs for new version
-          sed -i "s/v7\.0\.[0-9]/v$NEW_VER/g" PKGBUILD
-          
-          # Generate new checksums
-          updpkgsums
-          
-          # Update .SRCINFO
           makepkg --printsrcinfo > .SRCINFO
 
       - name: Update solara-kernel-headers PKGBUILD
@@ -89,9 +74,9 @@ jobs:
           cd aur-headers
           
           NEW_VER=${{ needs.check-update.outputs.new_version }}
-          sed -i "s/pkgver=.*/pkgver=$NEW_VER/" PKGBUILD
-          sed -i "s/v7\.0\.[0-9]/v$NEW_VER/g" PKGBUILD
-          updpkgsums
+          MAJOR=$(echo "$NEW_VER" | cut -d. -f1,2)
+          sed -i "s/^pkgver=.*/pkgver=$MAJOR/" PKGBUILD
+          sed -i 's/^pkgrel=.*/pkgrel=1/' PKGBUILD
           makepkg --printsrcinfo > .SRCINFO
 
       - name: Commit and push
