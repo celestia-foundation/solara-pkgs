@@ -23,14 +23,14 @@ makedepends=('xz' 'zstd' 'bc' 'rsync' 'libelf' 'openssl' 'python' 'tar' 'gcc' 'm
 
 # Download mainline Linux + ZEN patches
 source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.0.5.tar.xz"
-        "https://github.com/zen-kernel/zen-kernel/releases/download/v2.0/7.0.5/zen-kernel-7.0.5-x86_64.tar.xz")
+        "https://github.com/zen-kernel/zen-kernel/releases/download/v2.0/7.0.5/linux-v7.0.5-zen1.patch.zst")
 sha256sums=('SKIP' 'SKIP')
 
 prepare() {
     cd linux-7.0.5
     
     # Extract and apply ZEN patches
-    tar -xf "${srcdir}/zen-kernel-7.0.5-x86_64.tar.xz"
+    tar -xf "https://github.com/zen-kernel/zen-kernel/releases/download/v2.0/7.0.5/linux-v7.0.5-zen1.patch.zst"
     
     # Apply all patches from ZEN release
     for patch in *.patch; do
