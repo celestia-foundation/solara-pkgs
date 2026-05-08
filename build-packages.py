@@ -26,18 +26,32 @@ sha256sums=('SKIP')
 package() {
     tar -xf "${srcdir}/linux-cachyos-${pkgver}-${pkgrel}-x86_64_v3.pkg.tar.zst" -C "${pkgdir}"
     
-    # Remove metadata dotfiles that cause Pacman to reject the package
-    rm -f "${pkgdir}"/.BUILDINFO "${pkgdir}"/.MTREE "${pkgdir}"/.PKGINFO
+    # Remove ALL metadata dotfiles from the extracted package
+    find "${pkgdir}" -maxdepth 1 -name '.*' -type f -delete
     
-    for f in "${pkgdir}"/boot/vmlinuz-*; do
-        [ -f "$f" ] && mv "$f" "${f/-cachyos/-solara}"
+    # Rename vmlinuz in /boot/ and apply branding
+    if [ -d "${pkgdir}/boot" ]; then
+        for f in "${pkgdir}"/boot/vmlinuz-*; do
+            [ -f "$f" ] && mv "$f" "${f/-cachyos/-solara}"
+        done
+    fi
+    
+    # Also handle vmlinuz that might be inside the modules directory
+    for f in "${pkgdir}"/usr/lib/modules/*/vmlinuz; do
+        [ -f "$f" ] && mv "$f" "${f%.cachyos}" 2>/dev/null || true
     done
     
     for d in "${pkgdir}"/usr/lib/modules/*; do
         [ -d "$d" ] && mv "$d" "${d/-cachyos/-solara}"
     done
     
+    # Update modprobe config
     sed -i 's/linux-cachyos/solara-kernel/g' "${pkgdir}"/usr/lib/modprobe.d/*.conf 2>/dev/null || true
+    
+    # Copy vmlinuz to /boot if it's only in modules dir
+    for v in "${pkgdir}"/usr/lib/modules/*/vmlinuz; do
+        [ -f "$v" ] && cp "$v" "${pkgdir}/boot/" 2>/dev/null || true
+    done
 }
 '''
 }
