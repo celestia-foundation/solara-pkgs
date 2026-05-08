@@ -71,32 +71,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Filter packages
-        run: |
-          # Debug: show all packages
-          ls -la packages/x86_64/
-          # Only include Solara packages (exclude upstream like linux-cachyos)
-          mkdir -p release-pkgs
-          for pkg in packages/x86_64/*.pkg.tar.zst; do
-            name=$(basename "$pkg")
-            echo "Checking: $name"
-            if echo "$name" | grep -q "^linux-cachyos"; then
-              echo "Skipping: $name (linux-cachyos)"
-            else
-              echo "Including: $name"
-              cp "$pkg" release-pkgs/
-            fi
-          done
-          echo "--- Release packages ---"
-          ls -la release-pkgs
-          cp packages/x86_64/*.db.tar.gz release-pkgs/ 2>/dev/null || true
-          cp packages/x86_64/*.files.tar.gz release-pkgs/ 2>/dev/null || true
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          files: release-pkgs/*.pkg.tar.zst release-pkgs/*.db.tar.gz release-pkgs/*.files.tar.gz
+          files: packages/x86_64/*.pkg.tar.zst packages/x86_64/*.db.tar.gz packages/x86_64/*.files.tar.gz
           name: Latest Packages
           body: |
             Auto-built AUR packages for Solara Linux.
