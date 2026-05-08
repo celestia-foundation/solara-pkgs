@@ -71,23 +71,31 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          files: packages/x86_64/*.pkg.tar.zst packages/x86_64/*.db.tar.gz packages/x86_64/*.files.tar.gz
-          name: Latest Packages
-          body: |
-            Auto-built AUR packages for Solara Linux.
+      - name: Create initial release
+        run: |
+          gh release create latest --title "Latest Packages" --notes "Auto-built AUR packages for Solara Linux"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            Add to `/etc/pacman.conf`:
-            ```
-            [solara-pkgs]
-            SigLevel = Optional TrustAll
-            Server = https://ravecorelabs.github.io/solara-pkgs/x86_64
-            ```
-          draft: false
-          prerelease: false
+      - name: Upload release assets
+        run: |
+          pwd
+          ls -la packages/x86_64/
+          cd packages/x86_64
+          for f in *.pkg.tar.zst; do
+            echo "Uploading: $f"
+            gh release upload latest "$f" --clobber
+          done
+          for f in *.db.tar.gz; do
+            echo "Uploading: $f"
+            gh release upload latest "$f" --clobber
+          done
+          for f in *.files.tar.gz; do
+            echo "Uploading: $f"
+            gh release upload latest "$f" --clobber
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   pages:
     needs: release
