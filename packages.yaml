@@ -4,6 +4,3 @@ packages:
   - arc-gtk-theme
   - arc-icon-theme
   - solara-kernel
-# Fix for solara-kernel dotfile issue
-# trigger
-x
