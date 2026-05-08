@@ -11,7 +11,7 @@ os.makedirs("/tmp/pkgout", exist_ok=True)
 # Actual Linux Zen kernel + CachyOS config compilation
 CUSTOM_PKGBUILDS = {
     "solara-kernel": """pkgname=solara-kernel
-pkgver=7.0.3
+pkgver=7.0.5
 pkgrel=1
 pkgdesc="Solara Linux Kernel - Compiled from Linux Zen kernel source with CachyOS patches"
 arch=('x86_64')
@@ -21,15 +21,15 @@ depends=('coreutils' 'kmod' 'initramfs')
 optdepends=('wireless-regdb' 'linux-firmware' 'modprobed-db' 'scx-sched')
 makedepends=('xz' 'zstd' 'bc' 'rsync' 'libelf' 'openssl' 'python' 'tar' 'gcc' 'make' 'patch' 'diffutils' 'git' 'curl' 'flex' 'bison' 'elfutils' 'inetutils' 'clang' 'lld' 'llvm')
 
-source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.0.3.tar.xz"
-        "https://cdn77.cachyos.org/repo/x86_64_v3/cachyos-v3/linux-cachyos-v3-7.0.3-1-x86_64_v3.pkg.tar.zst"
+source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.0.5.tar.xz"
+        "https://cdn77.cachyos.org/repo/x86_64_v3/cachyos-v3/linux-cachyos-v3-7.0.5-1-x86_64_v3.pkg.tar.zst"
         "https://github.com/CachyOS/linux-cachyos-patches/raw/refs/heads/main/patches/7.0/cachyos-base-v3.tar.xz"
         "https://github.com/CachyOS/kernel-patches/raw/refs/heads/main/7.0/0001-ZEN-v3-EVDF-git-patches.tar.xz")
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
-    cd linux-7.0.3
-    tar -xf "${srcdir}/linux-cachyos-v3-7.0.3-1-x86_64_v3.pkg.tar.zst" -C ../
+    cd linux-7.0.5
+    tar -xf "${srcdir}/linux-cachyos-v3-7.0.5-1-x86_64_v3.pkg.tar.zst" -C ../
     KVER=$(ls ../linux-cachyos-*/usr/lib/modules/ 2>/dev/null | head -1 | xargs basename)
     echo "Using CachyOS kernel config: $KVER"
     if [ -f "../linux-cachyos-*/usr/lib/modules/${KVER}/config" ]; then
@@ -43,7 +43,7 @@ prepare() {
 }
 
 build() {
-    cd linux-7.0.3
+    cd linux-7.0.5
     make -j$(nproc) CC=clang LD=ld.lld LLVM=1 solara-defconfig
     make -j$(nproc) CC=clang LD=ld.lld LLVM=1 modules -y
     make -j$(nproc) CC=clang LD=ld.lld LLVM=1 bzImage -y
@@ -51,7 +51,7 @@ build() {
 }
 
 package() {
-    cd linux-7.0.3
+    cd linux-7.0.5
     DESTDIR="${pkgdir}" make modules_install install -j$(nproc)
     if [ -f arch/x86_64/boot/bzImage ]; then
         cp arch/x86_64/boot/bzImage "${pkgdir}/boot/vmlinuz-solara"
