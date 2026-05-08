@@ -73,14 +73,24 @@ jobs:
 
       - name: Filter packages
         run: |
+          # Debug: show all packages
+          ls -la packages/x86_64/
           # Only include Solara packages (exclude upstream like linux-cachyos)
           mkdir -p release-pkgs
           for pkg in packages/x86_64/*.pkg.tar.zst; do
-            basename "$pkg" | grep -vq "^linux-cachyos" && cp "$pkg" release-pkgs/
+            name=$(basename "$pkg")
+            echo "Checking: $name"
+            if echo "$name" | grep -q "^linux-cachyos"; then
+              echo "Skipping: $name (linux-cachyos)"
+            else
+              echo "Including: $name"
+              cp "$pkg" release-pkgs/
+            fi
           done
-          cp packages/x86_64/*.db.tar.gz release-pkgs/
-          cp packages/x86_64/*.files.tar.gz release-pkgs/
+          echo "--- Release packages ---"
           ls -la release-pkgs
+          cp packages/x86_64/*.db.tar.gz release-pkgs/ 2>/dev/null || true
+          cp packages/x86_64/*.files.tar.gz release-pkgs/ 2>/dev/null || true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
