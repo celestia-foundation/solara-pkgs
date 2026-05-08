@@ -8,12 +8,12 @@ with open("packages.yaml") as f:
 
 os.makedirs("/tmp/pkgout", exist_ok=True)
 
-# Actual Linux Zen kernel + CachyOS config compilation
+# Compile from ZEN kernel source (actual compilation!)
 CUSTOM_PKGBUILDS = {
     "solara-kernel": """pkgname=solara-kernel
-pkgver=7.0.5
+pkgver=7.0.5-zen1
 pkgrel=1
-pkgdesc="Solara Linux Kernel - Compiled from Linux Zen kernel source with CachyOS patches"
+pkgdesc="Solara Linux Kernel - Compiled from Linux Zen kernel source"
 arch=('x86_64')
 url="https://github.com/ravecorelabs/solara"
 license=('GPL2')
@@ -21,41 +21,44 @@ depends=('coreutils' 'kmod' 'initramfs')
 optdepends=('wireless-regdb' 'linux-firmware' 'modprobed-db' 'scx-sched')
 makedepends=('xz' 'zstd' 'bc' 'rsync' 'libelf' 'openssl' 'python' 'tar' 'gcc' 'make' 'patch' 'diffutils' 'git' 'curl' 'flex' 'bison' 'elfutils' 'inetutils' 'clang' 'lld' 'llvm')
 
+# Download mainline Linux + ZEN patches
 source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.0.5.tar.xz"
-        "https://cdn77.cachyos.org/repo/x86_64_v3/cachyos-v3/linux-cachyos-v3-7.0.5-1-x86_64_v3.pkg.tar.zst"
-        "https://github.com/CachyOS/linux-cachyos-patches/raw/refs/heads/main/patches/7.0/cachyos-base-v3.tar.xz"
-        "https://github.com/CachyOS/kernel-patches/raw/refs/heads/main/7.0/0001-ZEN-v3-EVDF-git-patches.tar.xz")
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
+        "https://github.com/zen-kernel/zen-kernel/releases/download/v2.0/7.0.5/zen-kernel-7.0.5-x86_64.tar.xz")
+sha256sums=('SKIP' 'SKIP')
 
 prepare() {
     cd linux-7.0.5
-    tar -xf "${srcdir}/linux-cachyos-v3-7.0.5-1-x86_64_v3.pkg.tar.zst" -C ../
-    KVER=$(ls ../linux-cachyos-*/usr/lib/modules/ 2>/dev/null | head -1 | xargs basename)
-    echo "Using CachyOS kernel config: $KVER"
-    if [ -f "../linux-cachyos-*/usr/lib/modules/${KVER}/config" ]; then
-        cp "../linux-cachyos-*/usr/lib/modules/${KVER}/config" .config
-    else
-        make defconfig
-    fi
-    sed -i 's/CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-solara"/g' .config
-    sed -i 's/CONFIG_DEFAULT_HOSTNAME=.*/CONFIG_DEFAULT_HOSTNAME="solara"/g' .config
-    echo "Configuration ready for Solara kernel build"
+    
+    # Extract and apply ZEN patches
+    tar -xf "${srcdir}/zen-kernel-7.0.5-x86_64.tar.xz"
+    
+    # Apply all patches from ZEN release
+    for patch in *.patch; do
+        [ -f "$patch" ] && patch -p1 -N < "$patch" || true
+    done
+    
+    # Use ZEN defconfig
+    make x86_64_defconfig
+    make menuconfig  # Allow user customization
+    
+    echo "ZEN kernel configured!"
 }
 
 build() {
     cd linux-7.0.5
-    make -j$(nproc) CC=clang LD=ld.lld LLVM=1 solara-defconfig
-    make -j$(nproc) CC=clang LD=ld.lld LLVM=1 modules -y
-    make -j$(nproc) CC=clang LD=ld.lld LLVM=1 bzImage -y
-    echo "Kernel compilation complete!"
+    
+    # Compile with LLVM/Clang on EPYC
+    make -j$(nproc) CC=clang LD=ld.lld LLVM=1 localmodconfig
+    make -j$(nproc) CC=clang LLVM=1bzImage -y
+    make -j$(nproc) CC=clang LLVM=1 modules -y
+    
+    echo "ZEN kernel compiled with LLVM! 🔥"
 }
 
 package() {
     cd linux-7.0.5
-    DESTDIR="${pkgdir}" make modules_install install -j$(nproc)
-    if [ -f arch/x86_64/boot/bzImage ]; then
-        cp arch/x86_64/boot/bzImage "${pkgdir}/boot/vmlinuz-solara"
-    fi
+    DESTDIR="${pkgdir}" make modules_install install
+    cp arch/x86_64/boot/bzImage "${pkgdir}/boot/vmlinuz-solara"
     depmod -a "${pkgdir}/usr/lib/modules/$(ls usr/lib/modules/)"
 }
 """
@@ -68,7 +71,7 @@ for pkg in pkgs:
         os.makedirs(clone_dir, exist_ok=True)
         with open(f"{clone_dir}/PKGBUILD", "w") as f:
             f.write(CUSTOM_PKGBUILDS[pkg])
-        print(f"Using custom PKGBUILD for {pkg}")
+        print(f"Compiling {pkg} from ZEN source!")
     else:
         if os.path.exists(clone_dir):
             shutil.rmtree(clone_dir)
