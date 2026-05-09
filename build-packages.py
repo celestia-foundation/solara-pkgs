@@ -23,7 +23,7 @@ for pkg in pkgs:
     subprocess.run(f"cp {clone_dir}/*.pkg.tar.zst /tmp/pkgout/ || true", shell=True)
     
     if pkg == "solara-kernel":
-        kernel_pkg = glob.glob("/tmp/pkgout/solara-kernel-*.pkg.tar.zst")
+        kernel_pkg = [f for f in glob.glob("/tmp/pkgout/solara-kernel-*.pkg.tar.zst") if "-debug-" not in f]
         if kernel_pkg:
             subprocess.run(["sudo", "pacman", "-U", "--noconfirm", kernel_pkg[0]])
 
