@@ -8,15 +8,18 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --border: #1e1e2e;
-      --accent: #e07b39;
-      --accent2: #7b8cde;
-      --text: #d4d4e8;
-      --muted: #5a5a7a;
-      --warning-bg: #1a1008;
-      --warning-border: #e07b39;
+      --bg: #06060a;
+      --surface: #0d0d14;
+      --surface2: #12121c;
+      --border: #1a1a2a;
+      --accent: #e08a3c;
+      --accent-glow: rgba(224, 138, 60, 0.15);
+      --accent2: #8b9cff;
+      --text: #e0e0f0;
+      --text-dim: #6a6a8a;
+      --muted: #4a4a6a;
+      --warning-bg: #1a1208;
+      --warning-border: #e08a3c;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,187 +35,268 @@
     .noise {
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 0;
     }
 
+    .glow {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
     .container {
-      max-width: 860px;
+      max-width: 720px;
       margin: 0 auto;
-      padding: 48px 24px;
+      padding: 56px 24px;
       position: relative;
       z-index: 1;
     }
 
     header {
-      margin-bottom: 40px;
+      margin-bottom: 44px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .logo {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 2rem;
-      letter-spacing: -0.03em;
+      font-size: 2.2rem;
+      letter-spacing: -0.04em;
       color: #fff;
+      line-height: 1.1;
     }
 
     .logo span {
-      color: var(--accent);
+      background: linear-gradient(135deg, var(--accent) 0%, #f0a060 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .subtitle {
       color: var(--muted);
-      font-size: 0.78rem;
-      margin-top: 6px;
+      font-size: 0.72rem;
+      margin-top: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-radius: 4px;
     }
 
     .warning {
       background: var(--warning-bg);
       border: 1px solid var(--warning-border);
       border-left: 3px solid var(--warning-border);
-      padding: 14px 18px;
-      margin-bottom: 36px;
-      font-size: 0.78rem;
-      line-height: 1.6;
-      color: #c49060;
+      padding: 16px 20px;
+      margin-bottom: 40px;
+      font-size: 0.74rem;
+      line-height: 1.65;
+      color: #d0a060;
+      border-radius: 0 6px 6px 0;
     }
 
     .warning strong {
       color: var(--accent);
       display: block;
-      margin-bottom: 4px;
-      font-size: 0.72rem;
+      margin-bottom: 6px;
+      font-size: 0.66rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
     }
 
     .usage {
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 18px 20px;
+      padding: 20px 24px;
       margin-bottom: 36px;
-      font-size: 0.78rem;
+      font-size: 0.74rem;
+      border-radius: 8px;
     }
 
     .usage-title {
       font-family: 'Syne', sans-serif;
-      font-size: 0.7rem;
+      font-size: 0.66rem;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       color: var(--muted);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .usage pre {
       background: var(--bg);
       border: 1px solid var(--border);
-      padding: 12px 14px;
-      font-size: 0.75rem;
+      padding: 14px 18px;
+      font-size: 0.72rem;
       color: var(--accent2);
       overflow-x: auto;
-      line-height: 1.6;
+      line-height: 1.7;
+      border-radius: 4px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding-left: 4px;
     }
 
     .browser {
       border: 1px solid var(--border);
       background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     .browser-header {
       display: grid;
-      grid-template-columns: 1fr 100px 160px;
-      padding: 10px 16px;
+      grid-template-columns: 1fr 90px 140px;
+      padding: 12px 20px;
       border-bottom: 1px solid var(--border);
-      font-size: 0.68rem;
+      font-size: 0.62rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       color: var(--muted);
+      background: var(--surface2);
     }
 
     .pkg-row {
       display: grid;
-      grid-template-columns: 1fr 100px 160px;
-      padding: 12px 16px;
+      grid-template-columns: 1fr 90px 140px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--border);
-      font-size: 0.78rem;
-      transition: background 0.15s;
+      font-size: 0.76rem;
+      transition: all 0.2s ease;
       align-items: center;
       text-decoration: none;
       color: var(--text);
     }
 
     .pkg-row:last-child { border-bottom: none; }
-    .pkg-row:hover { background: rgba(224, 123, 57, 0.05); }
+    .pkg-row:hover { 
+      background: var(--accent-glow);
+      padding-left: 24px;
+    }
 
     .pkg-name {
       display: flex;
       align-items: center;
-      gap: 10px;
-      color: var(--accent2);
+      gap: 12px;
+      color: var(--text);
+      font-weight: 500;
     }
 
     .pkg-icon {
-      width: 16px;
-      height: 16px;
-      opacity: 0.5;
+      width: 14px;
+      height: 14px;
+      color: var(--accent);
       flex-shrink: 0;
     }
 
-    .pkg-size { color: var(--muted); font-size: 0.72rem; }
+    .pkg-version {
+      color: var(--accent2);
+      font-size: 0.68rem;
+    }
+
+    .pkg-size { color: var(--text-dim); font-size: 0.7rem; }
     .pkg-dl {
       color: var(--accent);
-      font-size: 0.7rem;
+      font-size: 0.66rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-align: right;
+      font-weight: 500;
     }
 
     .empty {
-      padding: 40px 16px;
+      padding: 48px 20px;
       text-align: center;
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.74rem;
     }
 
     footer {
-      margin-top: 40px;
-      font-size: 0.7rem;
+      margin-top: 48px;
+      font-size: 0.68rem;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    footer a { color: var(--accent2); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+    footer a { color: var(--accent2); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--accent); text-decoration: none; }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .browser { animation: fadeIn 0.4s ease; }
-    .warning { animation: fadeIn 0.3s ease 0.1s both; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .glow { animation: pulse 6s ease-in-out infinite; }
+    .browser { animation: fadeIn 0.5s ease; }
+    .warning { animation: fadeIn 0.35s ease 0.15s both; }
+    .logo { animation: fadeIn 0.4s ease; }
   
     @media (max-width: 600px) {
-      .container { padding: 24px 16px; }
-      .logo { font-size: 1.5rem; }
+      .container { padding: 28px 16px; }
+      .logo { font-size: 1.6rem; }
+      header { flex-direction: column; align-items: flex-start; }
+      .badge { display: none; }
       .browser-header { display: none; }
-      .pkg-row { grid-template-columns: 1fr; gap: 4px; }
+      .pkg-row { grid-template-columns: 1fr auto; gap: 6px; }
       .pkg-size { display: none; }
-      .pkg-dl { text-align: left; }
-      .usage pre { font-size: 0.68rem; }
+      .pkg-dl { grid-column: 2; text-align: right; }
+      .usage pre { font-size: 0.64rem; }
       footer { flex-direction: column; gap: 0.5rem; text-align: center; }
     }
   </style>
 </head>
 <body>
   <div class="noise"></div>
+  <div class="glow"></div>
   <div class="container">
     <header>
-      <div class="logo">solara<span>-pkgs</span></div>
-      <div class="subtitle">AUR package repository for Solara Linux &mdash; ravecorelabs/solara-pkgs</div>
+      <div class="logo-group">
+        <div class="logo">solara<span>-pkgs</span></div>
+        <div class="subtitle">AUR package repository for Solara Linux</div>
+      </div>
+      <div class="badge">v7.0.5</div>
     </header>
 
     <div class="warning">
@@ -228,11 +312,12 @@ SigLevel = Optional TrustAll
 Server = https://ravecorelabs.github.io/solara-pkgs/x86_64</pre>
     </div>
 
+    <div class="section-title">packages</div>
     <div class="browser">
       <div class="browser-header">
-        <span>package</span>
-        <span>size</span>
-        <span style="text-align:right">download</span>
+        <span>name</span>
+        <span>version</span>
+        <span style="text-align:right">size</span>
       </div>
       <div id="pkg-list">
         <div class="empty">loading packages...</div>
@@ -240,7 +325,7 @@ Server = https://ravecorelabs.github.io/solara-pkgs/x86_64</pre>
     </div>
 
     <footer>
-      <span>RaveCore Labs &mdash; GPL-3.0</span>
+      <span>RaveCore Labs &mdash; Solara Linux</span>
       <a href="https://github.com/ravecorelabs/solara-pkgs" target="_blank">github</a>
     </footer>
   </div>
@@ -250,6 +335,11 @@ Server = https://ravecorelabs.github.io/solara-pkgs/x86_64</pre>
       if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
       if (bytes > 1024) return (bytes / 1024).toFixed(1) + ' KB';
       return bytes + ' B';
+    }
+
+    function extractVersion(filename) {
+      const match = filename.match(/-(\d+\.\d+\.\d+[^-]*)-/);
+      return match ? match[1] : '?';
     }
 
     async function loadPackages() {
@@ -269,8 +359,8 @@ Server = https://ravecorelabs.github.io/solara-pkgs/x86_64</pre>
               </svg>
               ${p.name}
             </div>
+            <div class="pkg-version">${extractVersion(p.name)}</div>
             <div class="pkg-size">${formatSize(p.size)}</div>
-            <div class="pkg-dl">↓ download</div>
           </a>
         `).join('');
       } catch {
