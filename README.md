@@ -27,7 +27,7 @@ Add to `/etc/pacman.conf`:
 ```
 [solara-pkgs]
 SigLevel = Optional TrustAll
-Server = https://ravecorelabs.github.io/solara-pkgs/x86_64
+Server = https://celestiafoundation.github.io/solara-pkgs/x86_64
 ```
 
 Then run:
@@ -39,7 +39,7 @@ pacman -S yay visual-studio-code-bin arc-gtk-theme arc-icon-theme
 
 ## Browse packages
 
-[ravecorelabs.github.io/solara-pkgs](https://ravecorelabs.github.io/solara-pkgs)
+[celestiafoundation.github.io/solara-pkgs](https://celestiafoundation.github.io/solara-pkgs)
 
 ## License
 
