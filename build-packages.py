@@ -8,7 +8,8 @@ with open("packages.yaml") as f:
 
 os.makedirs("/tmp/pkgout", exist_ok=True)
 
-# Clone and build from AUR (simple!)
+# Build solara-kernel FIRST (needed by headers)
+kernel_built = False
 for pkg in pkgs:
     clone_dir = f"/tmp/{pkg}"
     
@@ -31,8 +32,16 @@ for pkg in pkgs:
     if result.returncode != 0:
         print(f"SKIP: build failed for {pkg}")
         continue
-
+    
     # Copy package
     subprocess.run(f"cp {clone_dir}/*.pkg.tar.zst /tmp/pkgout/ || true", shell=True)
+    
+    # Install kernel FIRST so headers can find it
+    if pkg == "solara-kernel":
+        for f in os.listdir("/tmp/pkgout"):
+            if f.endswith(".pkg.tar.zst") and "debug" not in f:
+                subprocess.run(["chown", "root:root", f"/tmp/pkgout/{f}"])
+                subprocess.run(["sudo", "pacman", "-U", "--noconfirm", f"/tmp/pkgout/{f}"])
+                kernel_built = True
 
 print("Done!")
