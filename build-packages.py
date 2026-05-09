@@ -2,6 +2,7 @@ import yaml
 import subprocess
 import os
 import shutil
+import glob
 
 with open("packages.yaml") as f:
     pkgs = yaml.safe_load(f)["packages"]
@@ -14,18 +15,16 @@ for pkg in pkgs:
     if os.path.exists(clone_dir):
         shutil.rmtree(clone_dir)
     
-    # Clone from AUR
     subprocess.run(["git", "clone", f"https://aur.archlinux.org/{pkg}.git", clone_dir])
     
-    # Build
     subprocess.run(["chown", "-R", "builder:builder", clone_dir])
     subprocess.run(["su", "-", "builder", "-c", f"cd {clone_dir} && makepkg -s --noconfirm --noprogress --skippgpcheck"])
     
-    # Copy package
     subprocess.run(f"cp {clone_dir}/*.pkg.tar.zst /tmp/pkgout/ || true", shell=True)
     
-    # Install kernel AFTER building so headers can find it
     if pkg == "solara-kernel":
-        subprocess.run(["sudo", "pacman", "-U", "--noconfirm", f"/tmp/pkgout/solara-kernel-" + "7.0.5-1-x86_64.pkg.tar.zst"])
+        kernel_pkg = glob.glob("/tmp/pkgout/solara-kernel-*.pkg.tar.zst")
+        if kernel_pkg:
+            subprocess.run(["sudo", "pacman", "-U", "--noconfirm", kernel_pkg[0]])
 
 print("Done!")
