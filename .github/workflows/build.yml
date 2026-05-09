@@ -2,9 +2,15 @@ name: Build AUR Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      pages_only:
+        type: boolean
+        description: 'Update GitHub Pages only (skip build)'
+        default: false
   push:
     paths:
       - 'packages.yaml'
+      - 'docs-src/**'
 
 jobs:
   build:
@@ -46,8 +52,11 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || needs.build.outputs.success == 'true' || needs.build.outputs.skipped == 'true'
     permissions:
       contents: write
+    outputs:
+      success: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,7 +109,7 @@ jobs:
   pages:
     needs: release
     runs-on: ubuntu-latest
-    if: always()
+    if: github.event_name == 'workflow_dispatch' || needs.release.outputs.packages_changed == 'true'
     permissions:
       contents: write
       pages: write
