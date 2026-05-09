@@ -24,11 +24,8 @@ for pkg in pkgs:
     # Copy package
     subprocess.run(f"cp {clone_dir}/*.pkg.tar.zst /tmp/pkgout/ || true", shell=True)
     
-    # Install kernel after kernel build, before headers
+    # Install kernel AFTER building so headers can find it
     if pkg == "solara-kernel":
-        for pf in os.listdir("/tmp/pkgout"):
-            if pf.startswith("solara-kernel-") and "headers" not in pf and pf.endswith(".pkg.tar.zst"):
-                subprocess.run(["chown", "root:root", f"/tmp/pkgout/{pf}"])
-                subprocess.run(["sudo", "pacman", "-U", "--noconfirm", f"/tmp/pkgout/{pf}"])
+        subprocess.run(["sudo", "pacman", "-U", "--noconfirm", f"/tmp/pkgout/solara-kernel-" + "7.0.5-1-x86_64.pkg.tar.zst"])
 
 print("Done!")
