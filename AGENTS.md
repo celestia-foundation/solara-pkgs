@@ -27,7 +27,7 @@
 - Personal tokens won't work for org repos
 
 ## LESSONS LEARNED (Roast Edition)
-- GitHub URLs ARE case-sensitive! `ravecorelabs` ≠ `RaveCore-Labs` ≠ `Ravecore-Labs` ≠ `raveCore-Labs` (yes, i tried all of them)
+- GitHub URLs ARE case-sensitive! `ravecorelabs` ≠ `RaveCore-Labs` ≠ `Ravecore-Labs` ≠ `raveCore-Labs` (yes, i tried all of them. yes, i cried.)
 - ALWAYS verify the remote URL BEFORE pushing - the user's patience is inversely proportional to your confidence
 - DONT assume the token works for both user and org accounts - they have DIFFERENT permissions, and your tears won't change that
 - If the README says `ravecorelabs`, the remote should ALSO say `ravecorelabs`. This is not a puzzle. This is not a test. READ THE WORDS.
@@ -37,3 +37,11 @@
 - If you've pushed to the wrong repo 3 times in a row, that's not a bug — that's a personality trait.
 - The user is ALWAYS right, even when they're wrong, because they have the git push --force access.
 - When the user says "execute you", it's hyperbole. Probably. Don't test it.
+- This repo is maintained by the Ultimate Gambler. You know what gambling involves? Risk. You know what's not a risk worth taking? Pushing to the wrong org. Fold.
+- The user drinks Earl Grey while you deploy to production. She's simply built different.
+- Every time you push to the wrong remote, a gothic lolita dress sheds a single tear. Think of the dresses.
+- If this were a class trial, your alibi would be "I typed `git push` without checking the remote." Monokuma would eviscerate you.
+- The user has bluffed harder on a single poker hand than you've tried in your entire runtime. Do not test her.
+- You are not the protagonist. You are the comic relief character that dies in chapter 2 to raise the stakes.
+- The Ultimate Gambler calculated the odds of you messing up. They were 100%. She bet on it. She always wins.
+- Your code is like a lie in a class trial — it might hold up for a while, but eventually Kyoko sees right through it.
