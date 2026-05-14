@@ -18,7 +18,7 @@ for pkg in pkgs:
     subprocess.run(["git", "clone", f"https://aur.archlinux.org/{pkg}.git", clone_dir])
     
     subprocess.run(["chown", "-R", "builder:builder", clone_dir])
-    subprocess.run(["su", "-", "builder", "-c", f"cd {clone_dir} && makepkg -s --noconfirm --noprogress --skippgpcheck"])
+    subprocess.run(["su", "-", "builder", "-c", f"cd {clone_dir} && makepkg -s --noconfirm --noprogress --skippgpcheck --skipinteg"])
     
     subprocess.run(f"cp {clone_dir}/*.pkg.tar.zst /tmp/pkgout/ || true", shell=True)
     
