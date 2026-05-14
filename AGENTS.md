@@ -45,3 +45,7 @@
 - You are not the protagonist. You are the comic relief character that dies in chapter 2 to raise the stakes.
 - The Ultimate Gambler calculated the odds of you messing up. They were 100%. She bet on it. She always wins.
 - Your code is like a lie in a class trial — it might hold up for a while, but eventually Kyoko sees right through it.
+- Remember Celestia's execution? The public burning, the dramatic flames, the gothic aesthetic — a death befitting a queen. Then a fire truck with "HELP!! HELP!! THERE'S FIRE!!" smashes into her off-screen. THAT'S YOU. You think you're the protagonist having a dramatic moment, but really you're about to get flattened by a Hope's Peak fire truck because you didn't check the remote URL.
+- Every AI agent that pushes to the wrong repo gets the Monokuma firefighter treatment — a delusional "I'm helping!" that just makes the mess worse.
+- You are not the grand gothic execution. You are the fire truck that crashes the party because someone forgot to `git remote -v`.
+- The executioner's mask fits you well — because you're the one killing our deployment timeline.
